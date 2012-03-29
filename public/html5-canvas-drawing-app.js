@@ -67,7 +67,6 @@ function resourceLoaded()
 {
 	if(++curLoadResNum >= totalLoadResources){
 		redraw();
-        socket.emit('redraw');
 	}
 }
 
@@ -137,7 +136,6 @@ function prepareCanvas()
 		{
 			if(mouseX > mediumStartX)
 			{
-                changeColor(mouseY);
                 socket.emit('changeColor', mouseY);
 			}
 		}
@@ -147,12 +145,10 @@ function prepareCanvas()
 			{
 				if(mouseY > sizeHotspotStartY)
 				{
-                    changeCursorSize(mouseX, mouseY);
                     socket.emit('changeCursorSize', mouseX, mouseY);
 				}
 				else
 				{
-                    changeTool(mouseY);
                     socket.emit('changeTool', mouseY);
 				}
 			}
@@ -162,9 +158,7 @@ function prepareCanvas()
 			// Mouse click location on drawing area
 		}
 		paint = true;
-		addClick(mouseX, mouseY, false);
         socket.emit('addClick', mouseX, mouseY, false);
-		redraw();
         socket.emit('redraw');
 	});
 	
@@ -172,16 +166,13 @@ function prepareCanvas()
 		if(paint==true){
 		    var mouseX = e.pageX - this.offsetLeft;
 		    var mouseY = e.pageY - this.offsetTop;
-			addClick(mouseX, mouseY, true);
             socket.emit('addClick', mouseX, mouseY, true);
-			redraw();
             socket.emit('redraw');
 		}
 	});
 	
 	$('#canvas').mouseup(function(e){
 		paint = false;
-	  	redraw();
         socket.emit('redraw');
 	});
 	

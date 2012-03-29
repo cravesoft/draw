@@ -289,8 +289,8 @@ sockets.on('connection', function (socket) { // New client
                 });
                 console.log(w);
                 word = w;
-                socket.emit('log', "The word is '"+word+"'", Date.now());
-                if (autoask == true && autoskip == false) {
+                socket.emit('log', "your are drawing '"+word+"'", Date.now());
+                if (autoask == true && autoskip == true) {
                     timeoutID = setTimeout(goToNextWord, delay);
                 }
             } else {
@@ -321,10 +321,10 @@ sockets.on('connection', function (socket) { // New client
             switch (commands[0]) {
                 case 'help':
                     var message = "";
-                    message = "A multiplayer draw something. 'hint' => get a hint. 'score [player]' => show score for [player] (default is yourself). 'top5' => show top 5 players. 'top <number>' => show top <number> players (max 50). 'refresh' => refresh the word pool.";
+                    message = "A multiplayer draw something. 'hint' => get a hint. 'score [player]' => show score for [player] (default is yourself). 'top5' => show top 5 players. 'top <number>' => show top <number> players (max 50). 'refresh' => refresh the word pool. 'draw' => skip current word and draw next word.";
                     socket.emit('log', message, Date.now());
                     if (admin == true) {
-                        message = "Draw game aministration commands (requires authentication): 'autoask <on/off>' => enable/disable autoask mode.  'autoask delay <time>' => delay next word by <time> when in autoask mode.  'autoskip <on/off>' => enable/disable autoskip mode (autoskip implies autoask.  'autoskip delay <time>' => wait <time> before skipping to next word when in autoskip mode.  'kick <player>' => delete one player from the rank table. 'skip' => skip to next word."
+                        message = "Draw game aministration commands (requires authentication): 'autoask <on/off>' => enable/disable autoask mode.  'autoask delay <time>' => delay next word by <time> when in autoask mode.  'autoskip <on/off>' => enable/disable autoskip mode (autoskip implies autoask.  'autoskip delay <time>' => wait <time> before skipping to next word when in autoskip mode.  'kick <player>' => delete one player from the rank table."
                         socket.emit('log', message, Date.now());
                     }
                     break;
@@ -367,15 +367,11 @@ sockets.on('connection', function (socket) { // New client
                         socket.emit('log', 'unknown command', Date.now());
                     }
                     break;
-                case 'skip':
-                    if (admin == true) {
-                        sockets.emit('log', username+' skipped this word', Date.now());
-                        sockets.emit('log', "the word was '"+word+"'", Date.now());
-                        if (autoask == true) {
-                            giveWordToUser();
-                        }
-                    } else {
-                        socket.emit('log', 'unknown command', Date.now());
+                case 'draw':
+                    sockets.emit('log', username+' skipped this word', Date.now());
+                    sockets.emit('log', "the word was '"+word+"'", Date.now());
+                    if (autoask == true) {
+                        giveWordToUser();
                     }
                     break;
                 case 'refresh':
@@ -483,6 +479,7 @@ sockets.on('connection', function (socket) { // New client
     socket.on('changeColor', function (y) {
         redisClient.hget("user:"+userID, "drawing", function (err, drawing) {
             if (drawing == "true") {
+                console.log(userID);
                 sockets.emit('changeColor', y);
             }
         });
