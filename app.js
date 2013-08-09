@@ -1,7 +1,7 @@
 const path = require('path')
     , express = require('express')
     , redis = require('redis')
-    , lazy = require("lazy")
+    , readline = require('readline')
     , fs = require('fs')
     , app = module.exports = express.createServer()
     , port = process.env.PORT || 1337
@@ -267,6 +267,23 @@ sockets.on('connection', function (socket) { // New client
         }
     });
 
+    var rd = readline.createInterface({
+        input: fs.createReadStream('./data/words.txt'),
+        output: process.stdout,
+        terminal: false
+    });
+
+    var i = 0;
+    rd.on('line', function(line) {
+        i++;
+        redisClient.sadd("words", line.toString());
+    });
+
+    rd.on('close', function(close) {
+        giveWordToUser();
+        autoask = true;
+    });
+
     function goToNextWord() {
         sockets.emit('log', "too late! the word was '"+word+"'", Date.now());
         giveWordToUser();
@@ -377,15 +394,19 @@ sockets.on('connection', function (socket) { // New client
                 case 'refresh':
                     if (admin == true) {
                         // Read words in file
+                        var rd = readline.createInterface({
+                            input: fs.createReadStream('./data/words.txt'),
+                            output: process.stdout,
+                            terminal: false
+                        });
+
                         var i = 0;
-                        stream = fs.createReadStream('./data/words.txt');
-                        new lazy(stream)
-                        .lines
-                        .forEach(function(line) {
+                        rd.on('line', function(line) {
                             i++;
                             redisClient.sadd("words", line.toString());
                         });
-                        stream.on('end', function(close) {
+
+                        rd.on('close', function(close) {
                             sockets.emit('log', username+' added '+i+' words in the database', Date.now());
                         });
                     } else {
